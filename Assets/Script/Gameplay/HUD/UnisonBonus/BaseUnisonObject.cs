@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using YARG.Core;
@@ -24,9 +24,13 @@ namespace YARG.Gameplay.HUD
 
         public virtual void ResetState()
         {
-            Array.Clear(ParticipantFailState, 0, ParticipantCount);
-            Array.Clear(ParticipantTotalNotes, 0, ParticipantCount);
-            Array.Clear(ParticipantNotesHit, 0, ParticipantCount);
+            if (ParticipantFailState != null)
+            {
+                int len = Math.Clamp(ParticipantCount, 0, ParticipantFailState.Length);
+                Array.Clear(ParticipantFailState, 0, len);
+                Array.Clear(ParticipantTotalNotes, 0, len);
+                Array.Clear(ParticipantNotesHit, 0, len);
+            }
             ParticipantCount = 0;
         }
 

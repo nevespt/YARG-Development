@@ -1,11 +1,13 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.Main
 {
@@ -49,13 +51,34 @@ namespace YARG.Menu.Main
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
-                new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying)
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Main.Options.PartyPlay", PartyPlay),
+                new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying),
             }, true));
         }
 
         private void OnDisable()
         {
             Navigator.Instance?.PopScheme();
+        }
+
+        public void PartyPlay()
+        {
+            var randomSong = SongContainer.GetRandomSong();
+            if (randomSong == null)
+            {
+                ToastManager.ToastWarning("Menu.PartyPlay.NoSongs");
+                return;
+            }
+
+            GlobalVariables.State.CurrentSong = randomSong;
+            GlobalVariables.State.CurrentReplay = null;
+            GlobalVariables.State.IsPractice = false;
+            GlobalVariables.State.PlayingAShow = false;
+            GlobalVariables.State.IsPartyPlay = true;
+            GlobalVariables.State.PartyPlaySeamlessTransition = false;
+            GlobalVariables.State.SongSpeed = 1f;
+
+            GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
 
         public void CurrentlyPlaying()
@@ -114,7 +137,7 @@ namespace YARG.Menu.Main
             UnityEditor.EditorApplication.isPlaying = false;
 
 #else
-			Application.Quit();
+            Application.Quit();
 
 #endif
         }

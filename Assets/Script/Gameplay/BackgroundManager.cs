@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -644,6 +644,40 @@ namespace YARG.Gameplay
                         _videoPlayer.time = videoTime;
                     }
                     break;
+            }
+        }
+
+        public void ApplyLoadedBackground(BackgroundResult result)
+        {
+            if (result == null) return;
+
+            _type = result.Type;
+            if (_type == BackgroundType.Image && result.Image != null)
+            {
+                if (_videoPlayer != null)
+                {
+                    _videoPlayer.Stop();
+                    _videoPlayer.gameObject.SetActive(false);
+                }
+                _backgroundImage.texture = result.Image.LoadTexture(false);
+                _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                _backgroundImage.gameObject.SetActive(true);
+            }
+            else if (_type == BackgroundType.Video)
+            {
+                LoadVideoBackground(result);
+            }
+        }
+
+        public void UpdateSongBackground(SongEntry song)
+        {
+            if (song == null) return;
+
+            // If we are using standard 2D background, video, or if no 3D venue is active
+            if (_type == BackgroundType.Image || _type == BackgroundType.Video || _bundleBackgroundManager == null)
+            {
+                using var result = VenueLoader.GetVenue(song, out _source);
+                ApplyLoadedBackground(result);
             }
         }
 

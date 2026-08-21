@@ -101,6 +101,10 @@ namespace YARG.Venue
 
             _lightingEvents = lightingEvents;
             _performerEvents = performerEvents;
+            _lightingEventIndex = 0;
+            _performerEventIndex = 0;
+            Animation = LightingType.Default;
+            AnimationFrame = 0;
 
             // If the color arrays are empty, add basic ones for safety
 

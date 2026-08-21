@@ -1105,9 +1105,50 @@ namespace YARG.Venue.VenueCamera
             }
         }
 
+        public void ResetAllEffectsToDefault()
+        {
+            _curveAnimations.Clear();
+            _floatAnimations.Clear();
+            _clampedFloatAnimations.Clear();
+            _colorAnimations.Clear();
+            _clampedIntAnimations.Clear();
+
+            SetLowFrameRate(false);
+            SetBloom(false);
+            SetBrightness(false);
+            SetContrast(false);
+            SetPosterize(false);
+            SetInvertedColors(false);
+            SetMirror(false);
+            SetBlackAndWhite(false);
+            SetGrainy(false);
+            SetScanline(false);
+            SetSepiaTone(false);
+            SetSilverTone(false);
+            SetBlueTint(false);
+            SetGreenTint(false);
+            SetExposure(false);
+            SetChromaticAberration(false);
+            SetDesaturation(false);
+            SetDesaturatedRed(false);
+            SetDesaturatedBlue(false);
+            SetTrail(false);
+            SetTrailsDesaturation(false);
+            SetPhotoNegativeRedAndBlack(false);
+            SetContrastGreen(false);
+            SetContrastBlue(false);
+            SetContrastRed(false);
+            SetPsychRB(false);
+
+            PreviousEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
+            CurrentEffect = PreviousEffect;
+            NextEffect = null;
+            _currentEventIndex = 0;
+        }
+
         private void ResetPostProcessing(double time)
         {
-            ResetCameraEffect();
+            ResetAllEffectsToDefault();
 
             _currentEventIndex = 0;
             while (_currentEventIndex < _postProcessingEvents.Count - 1  &&

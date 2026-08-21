@@ -142,6 +142,17 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void SetRaisedImmediate()
+        {
+            _highwayRaised = true;
+            _raise?.Kill();
+            _lower?.Kill();
+            if (_preset != null)
+            {
+                transform.localRotation = Quaternion.Euler(_preset.Rotation, 0f, 0f);
+            }
+        }
+
         public void Punch()
         {
             PunchHighway();

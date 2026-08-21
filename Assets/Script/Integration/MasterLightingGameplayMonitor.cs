@@ -73,6 +73,11 @@ namespace YARG.Integration
             //_performerIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
+
+            _guitarEndCheckIndex = -1;
+            _bassEndCheckIndex = -1;
+            _drumEndCheckIndex = -1;
+            _keysEndCheckIndex = -1;
         }
 
         private void Update()
@@ -85,7 +90,7 @@ namespace YARG.Integration
             // Keys events
             if (_keysEndCheckIndex == -1)
             {
-                while (_keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
+                while (_keys != null && _keysIndex < _keys.Notes.Count && _keys.Notes[_keysIndex].Time <= GameManager.SongTime)
                 {
                     int fretsPressed = 0;
 
@@ -102,7 +107,7 @@ namespace YARG.Integration
             }
             else
             {
-                if (_keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                if (_keys == null || _keysEndCheckIndex < 0 || _keysEndCheckIndex >= _keys.Notes.Count || _keys.Notes[_keysEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
                     MasterLightingController.CurrentKeysNotes = 0;
                     _keysEndCheckIndex = -1;
@@ -113,7 +118,7 @@ namespace YARG.Integration
             // Bass events
             if (_bassEndCheckIndex == -1)
             {
-                while (_bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
+                while (_bass != null && _bassIndex < _bass.Notes.Count && _bass.Notes[_bassIndex].Time <= GameManager.SongTime)
                 {
                     int fretsPressed = 0;
 
@@ -129,7 +134,7 @@ namespace YARG.Integration
             }
             else
             {
-                if (_bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                if (_bass == null || _bassEndCheckIndex < 0 || _bassEndCheckIndex >= _bass.Notes.Count || _bass.Notes[_bassEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
                     MasterLightingController.CurrentBassNotes = 0;
                     _bassEndCheckIndex = -1;
@@ -140,7 +145,7 @@ namespace YARG.Integration
             // Guitar events
             if (_guitarEndCheckIndex == -1)
             {
-                while (_guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
+                while (_guitar != null && _guitarIndex < _guitar.Notes.Count && _guitar.Notes[_guitarIndex].Time <= GameManager.SongTime)
                 {
                     int fretsPressed = 0;
 
@@ -157,7 +162,7 @@ namespace YARG.Integration
             else
             {
                 //so instant notes should at least be on for 1 frame because of the else statement
-                if (_guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                if (_guitar == null || _guitarEndCheckIndex < 0 || _guitarEndCheckIndex >= _guitar.Notes.Count || _guitar.Notes[_guitarEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
                     MasterLightingController.CurrentGuitarNotes = 0;
                     //guitarEndCheckIndex is set to -1 when the note ends
@@ -170,7 +175,7 @@ namespace YARG.Integration
             // Drum events
             if (_drumEndCheckIndex == -1)
             {
-                while (_drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
+                while (_drums != null && _drumIndex < _drums.Notes.Count && _drums.Notes[_drumIndex].Time <= GameManager.SongTime)
                 {
                     int padsHit = 0;
 
@@ -186,7 +191,7 @@ namespace YARG.Integration
             }
             else
             {
-                if (_drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
+                if (_drums == null || _drumEndCheckIndex < 0 || _drumEndCheckIndex >= _drums.Notes.Count || _drums.Notes[_drumEndCheckIndex].TimeEnd <= GameManager.SongTime)
                 {
                     MasterLightingController.CurrentDrumNotes = 0;
                     _drumEndCheckIndex = -1;

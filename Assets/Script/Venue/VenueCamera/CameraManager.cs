@@ -211,6 +211,7 @@ namespace YARG.Venue.VenueCamera
 
             _postProcessingEvents = postProcessingEvents;
             _cameraCuts = cameraCuts;
+            _currentCutIndex = 0;
 
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
@@ -354,7 +355,9 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
+                _cameraTimer = (_cameraCuts != null && _currentCutIndex < _cameraCuts.Count)
+                    ? Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength)
+                    : 11f;
             }
 
             // If we are switching to the same camera, just leave it active

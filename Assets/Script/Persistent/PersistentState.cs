@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Menu.ScoreScreen;
@@ -32,5 +32,7 @@ namespace YARG
         public          bool    PlayingWithReplay;
         public          double? SavedInputTime;
         public          bool    CrowdSfxVenueOverride;
+        public          bool    IsPartyPlay;
+        public          bool    PartyPlaySeamlessTransition;
     }
 }

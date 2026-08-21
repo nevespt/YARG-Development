@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -502,7 +502,7 @@ namespace YARG.Gameplay.Player
                 haptics.SetStarPowerFill((float) currentStarPowerAmount);
             }
 
-            bool isSongEnd = visualTime > SongLength;
+            bool isSongEnd = !GlobalVariables.State.IsPartyPlay && visualTime > SongLength;
             bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed;
             if (!_didLowerTrack && shouldLowerTrack)
             {

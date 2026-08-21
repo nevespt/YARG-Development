@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay;
@@ -32,6 +32,10 @@ namespace YARG.Venue.Stage
             {
                 return;
             }
+
+            _pyroElements.Clear();
+            _fogElements.Clear();
+            _stageEventIndex = 0;
 
             foreach (var stageElement in _stageElements)
             {

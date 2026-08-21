@@ -152,6 +152,7 @@ namespace YARG
     public sealed class LoadingContext : IDisposable
     {
         private bool _disposed;
+        private readonly bool _showScreen;
 
         private struct QueuedTask
         {
@@ -162,21 +163,31 @@ namespace YARG
 
         private readonly Queue<QueuedTask> _queue = new();
 
-        public LoadingContext()
+        public LoadingContext(bool showScreen = true)
         {
-            LoadingScreen.Instance.gameObject.SetActive(true);
-            Navigator.Instance.DisableMenuInputs = true;
+            _showScreen = showScreen && !GlobalVariables.State.PartyPlaySeamlessTransition;
+            if (_showScreen && LoadingScreen.Instance != null)
+            {
+                LoadingScreen.Instance.gameObject.SetActive(true);
+                Navigator.Instance.DisableMenuInputs = true;
+            }
         }
 
         public void SetLoadingText(string phrase, string sub = null)
         {
-            LoadingScreen.Instance.LoadingPhrase.text = phrase;
-            LoadingScreen.Instance.SubPhrase.text = sub;
+            if (_showScreen && LoadingScreen.Instance != null)
+            {
+                LoadingScreen.Instance.LoadingPhrase.text = phrase;
+                LoadingScreen.Instance.SubPhrase.text = sub;
+            }
         }
 
         public void SetSubText(string sub)
         {
-            LoadingScreen.Instance.SubPhrase.text = sub;
+            if (_showScreen && LoadingScreen.Instance != null)
+            {
+                LoadingScreen.Instance.SubPhrase.text = sub;
+            }
         }
 
         /// <summary>
@@ -216,8 +227,11 @@ namespace YARG
             if (!_disposed)
             {
                 await Wait();
-                LoadingScreen.Instance.gameObject.SetActive(false);
-                Navigator.Instance.DisableMenuInputs = false;
+                if (_showScreen && LoadingScreen.Instance != null)
+                {
+                    LoadingScreen.Instance.gameObject.SetActive(false);
+                    Navigator.Instance.DisableMenuInputs = false;
+                }
                 _disposed = true;
             }
             GC.SuppressFinalize(this);

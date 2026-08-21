@@ -105,19 +105,19 @@ namespace YARG.Gameplay
         // For clarity, try to avoid using these properties inside GameManager itself
         // These are just to expose properties from the song runner to the outside
         /// <inheritdoc cref="SongRunner.SongTime"/>
-        public double SongTime => _songRunner.SongTime;
+        public double SongTime => _songRunner?.SongTime ?? 0.0;
 
         /// <inheritdoc cref="SongRunner.VisualTime"/>
-        public double VisualTime => _songRunner.VisualTime;
+        public double VisualTime => _songRunner?.VisualTime ?? 0.0;
 
         /// <inheritdoc cref="SongRunner.InputTime"/>
-        public double InputTime => _songRunner.InputTime;
+        public double InputTime => _songRunner?.InputTime ?? 0.0;
 
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
-        public float SongSpeed => _songRunner.SongSpeed;
+        public float SongSpeed => _songRunner?.SongSpeed ?? 1.0f;
 
         /// <inheritdoc cref="SongRunner.IsAudioSyncCorrectionActive"/>
-        public bool IsAudioSyncCorrectionActive => _songRunner.IsAudioSyncCorrectionActive;
+        public bool IsAudioSyncCorrectionActive => _songRunner?.IsAudioSyncCorrectionActive ?? false;
 
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner?.Started ?? false;
@@ -370,12 +370,12 @@ namespace YARG.Gameplay
 
         public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
         {
-            return _mixer.GetFFTData(buffer, fftSize, complex);
+            return _mixer?.GetFFTData(buffer, fftSize, complex) ?? 0;
         }
 
         public int GetMixerSampleData(float[] buffer)
         {
-            return _mixer.GetSampleData(buffer);
+            return _mixer?.GetSampleData(buffer) ?? 0;
         }
 
         public void AdjustSongSpeed(float deltaSpeed)
@@ -635,6 +635,11 @@ namespace YARG.Gameplay
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
+                return false;
+            }
+
+            if (GlobalVariables.State.IsPartyPlay)
+            {
                 return false;
             }
 

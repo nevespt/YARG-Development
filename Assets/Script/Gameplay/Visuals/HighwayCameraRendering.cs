@@ -62,6 +62,9 @@ namespace YARG.Gameplay.Visuals
         private readonly Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
         private readonly Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
         private readonly float[] _laneScales = new float[MAX_MATRICES];
+        private readonly float[] _currentLaneOffsets = new float[MAX_MATRICES];
+        private readonly float[] _currentLaneScales = new float[MAX_MATRICES];
+        private readonly bool[]  _laneInitialized = new bool[MAX_MATRICES];
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
@@ -210,12 +213,16 @@ namespace YARG.Gameplay.Visuals
                 var aspectScaleWidth = Screen.width / (float)Screen.height / (16f / 9f);
                 _laneScales[i] = _allowTextureRecreation ? aspectScaleWidth : Math.Min(aspectScaleWidth, 1.0f);
             }
-            UpdateCameraProjectionMatrices();
+            UpdateCameraProjectionMatrices(immediate: true);
 
             // Second pass, use screen width and height of the lane to adjust scale again
             for (int i = 0; i < _cameras.Count; i++)
             {
                 var trackBounds = GetTrackBoundsScreenSpaceRaised(i);
+                if (trackBounds.width <= 0.001f || trackBounds.height <= 0.001f)
+                {
+                    continue;
+                }
                 float trackWidth = trackBounds.width;
                 float trackHeight = trackBounds.height;
 
@@ -245,7 +252,10 @@ namespace YARG.Gameplay.Visuals
                 // Use the more restrictive scale factor
                 float scaleFactor = Math.Min(scaleFactorWidth, scaleFactorHeight);
                 _laneScales[i] *= scaleFactor;
+                _currentLaneScales[i] = _laneScales[i];
             }
+
+            UpdateCameraProjectionMatrices(immediate: true);
         }
 
         public void SetScaleMultiplier(float scaleMultiplier)
@@ -263,6 +273,10 @@ namespace YARG.Gameplay.Visuals
         public void AddPlayerParams(Vector3 position, Camera trackCamera, float curveFactor, float zeroFadePosition, float fadeSize, float raisedRotation, bool allowTextureRecreation = true)
         {
             _allowTextureRecreation = allowTextureRecreation;
+            if (_highwaysOutput != null)
+            {
+                _highwaysOutput.gameObject.SetActive(true);
+            }
             var index = _cameras.Count;
             _cameras.Add(trackCamera);
             _raisedRotations.Add(raisedRotation);
@@ -304,6 +318,73 @@ namespace YARG.Gameplay.Visuals
             AddPlayerParams(trackPlayer.transform.position, trackPlayer.TrackCamera, trackPlayer.Player.CameraPreset.CurveFactor, trackPlayer.ZeroFadePosition, trackPlayer.FadeSize, trackPlayer.Player.CameraPreset.Rotation);
         }
 
+        public void ReplaceTrackPlayer(TrackPlayer oldPlayer, TrackPlayer newPlayer)
+        {
+            if (oldPlayer == null || oldPlayer.TrackCamera == null || newPlayer == null || newPlayer.TrackCamera == null)
+            {
+                return;
+            }
+
+            int index = _cameras.IndexOf(oldPlayer.TrackCamera);
+            if (index >= 0)
+            {
+                var cameraData = newPlayer.TrackCamera.GetUniversalAdditionalCameraData();
+                cameraData.renderType = CameraRenderType.Overlay;
+
+                _cameras[index] = newPlayer.TrackCamera;
+                _raisedRotations[index] = newPlayer.Player.CameraPreset.Rotation;
+                _highwayPositions[index] = newPlayer.transform.position;
+                UpdateCurveFactor(newPlayer.Player.CameraPreset.CurveFactor, index);
+                UpdateFadeParams(index, newPlayer.ZeroFadePosition, newPlayer.FadeSize);
+                RecalculateScaleFactors();
+            }
+        }
+
+        public void RemoveTrackPlayer(TrackPlayer trackPlayer)
+        {
+            if (trackPlayer == null || trackPlayer.TrackCamera == null)
+            {
+                return;
+            }
+
+            int index = _cameras.IndexOf(trackPlayer.TrackCamera);
+            if (index >= 0)
+            {
+                _cameras.RemoveAt(index);
+                _raisedRotations.RemoveAt(index);
+                _highwayPositions.RemoveAt(index);
+
+                for (int i = index; i < _cameras.Count; i++)
+                {
+                    _curveFactors[i] = _curveFactors[i + 1];
+                    _zeroFadePositions[i] = _zeroFadePositions[i + 1];
+                    _fadeSize[i] = _fadeSize[i + 1];
+                    _currentLaneOffsets[i] = _currentLaneOffsets[i + 1];
+                    _currentLaneScales[i] = _currentLaneScales[i + 1];
+                    _laneInitialized[i] = _laneInitialized[i + 1];
+                }
+                _curveFactors[_cameras.Count] = 0;
+                _zeroFadePositions[_cameras.Count] = 0;
+                _fadeSize[_cameras.Count] = 0;
+                _currentLaneOffsets[_cameras.Count] = 0;
+                for (int i = 0; i < _highwayPositions.Count; i++)
+                {
+                    _highwayPositions[i] = new Vector3(i * 100f, 100f, 0f);
+                }
+
+                Shader.SetGlobalFloatArray(YargCurveFactorsID, _curveFactors);
+                Shader.SetGlobalInteger(YargHighwaysNumberID, _cameras.Count);
+                RecalculateFadeParams();
+                RecalculateScaleFactors();
+                _needsCameraReset = true;
+
+                if (_cameras.Count == 0 && _highwaysOutput != null)
+                {
+                    _highwaysOutput.gameObject.SetActive(false);
+                }
+            }
+        }
+
         public void AddVocalTrack(VocalTrack vocalTrack, int highwayIndex)
         {
             var camera = vocalTrack.GetTrackCamera();
@@ -312,6 +393,50 @@ namespace YARG.Gameplay.Visuals
             _vocalTrack = vocalTrack;
             // Vocals have no curve or tilt — use 0 for curveFactor and raisedRotation.
             AddPlayerParams(vocalTrack.transform.position, camera, 0f, float.MaxValue, 0.0f, 0f);
+        }
+
+        public void RemoveVocalTrack(VocalTrack vocalTrack)
+        {
+            if (vocalTrack == null)
+            {
+                return;
+            }
+
+            var camera = vocalTrack.GetTrackCamera();
+            int index = _cameras.IndexOf(camera);
+            if (index >= 0)
+            {
+                _cameras.RemoveAt(index);
+                _raisedRotations.RemoveAt(index);
+                _highwayPositions.RemoveAt(index);
+                _vocalTrack = null;
+
+                for (int i = index; i < _cameras.Count; i++)
+                {
+                    _curveFactors[i] = _curveFactors[i + 1];
+                    _zeroFadePositions[i] = _zeroFadePositions[i + 1];
+                    _fadeSize[i] = _fadeSize[i + 1];
+                    _currentLaneOffsets[i] = _currentLaneOffsets[i + 1];
+                    _currentLaneScales[i] = _currentLaneScales[i + 1];
+                    _laneInitialized[i] = _laneInitialized[i + 1];
+                }
+                _curveFactors[_cameras.Count] = 0;
+                _zeroFadePositions[_cameras.Count] = 0;
+                _fadeSize[_cameras.Count] = 0;
+                _currentLaneOffsets[_cameras.Count] = 0;
+                _currentLaneScales[_cameras.Count] = 0;
+                _laneInitialized[_cameras.Count] = false;
+
+                Shader.SetGlobalFloatArray(YargCurveFactorsID, _curveFactors);
+                Shader.SetGlobalInteger(YargHighwaysNumberID, _cameras.Count);
+                RecalculateFadeParams();
+                _needsCameraReset = true;
+
+                if (_cameras.Count == 0 && _highwaysOutput != null)
+                {
+                    _highwaysOutput.gameObject.SetActive(false);
+                }
+            }
         }
 
         public void SetHorizontalOffsetPx(float horizontalOffsetPx)
@@ -421,6 +546,8 @@ namespace YARG.Gameplay.Visuals
                 highwayIndex++;
             }
 
+            UpdateCameraProjectionMatrices();
+
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
             Shader.SetGlobalMatrixArray(YargHighwayCamInvViewMatricesID, _camInvViewMatrices);
             Shader.SetGlobalInteger(YargHighwaysNumberID, _cameras.Count);
@@ -441,7 +568,7 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void UpdateCameraProjectionMatrices()
+        public void UpdateCameraProjectionMatrices(bool immediate = false)
         {
             int highwayIndex = 0;
             for (int i = 0; i < _cameras.Count; ++i)
@@ -460,8 +587,33 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
+                    int highwayCount = HighwayCount();
+                    float targetScale = _laneScales[i];
+                    float targetOffsetX = 0f;
+
+                    if (highwayCount >= 1)
+                    {
+                        float laneWidth = 2.0f / highwayCount;
+                        float centerX = -1.0f + laneWidth * (highwayIndex + 0.5f);
+                        targetOffsetX = centerX + GetMultiplayerXOffset(highwayIndex, highwayCount,
+                            -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value / highwayCount) + horizontalOffsetNdc;
+                    }
+
+                    if (immediate || !_laneInitialized[i])
+                    {
+                        _currentLaneOffsets[i] = targetOffsetX;
+                        _currentLaneScales[i] = targetScale;
+                        _laneInitialized[i] = true;
+                    }
+                    else
+                    {
+                        float lerpSpeed = Mathf.Clamp01(Time.unscaledDeltaTime * 10f);
+                        _currentLaneOffsets[i] = Mathf.Lerp(_currentLaneOffsets[i], targetOffsetX, lerpSpeed);
+                        _currentLaneScales[i] = Mathf.Lerp(_currentLaneScales[i], targetScale, lerpSpeed);
+                    }
+
                     projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
-                        highwayIndex, HighwayCount(), _laneScales[i], horizontalOffsetNdc);
+                        _currentLaneOffsets[i], _currentLaneScales[i]);
                     highwayIndex++;
                 }
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop);
@@ -502,6 +654,26 @@ namespace YARG.Gameplay.Visuals
                 camera.nearClipPlane,
                 camera.farClipPlane
             );
+        }
+
+        public static Matrix4x4 GetPostProjectionMatrix(float offsetX, float highwayScale)
+        {
+            float offsetY = -1.0f + highwayScale;
+
+            Matrix4x4 postProj = Matrix4x4.identity;
+
+            postProj.m00 = highwayScale;
+            postProj.m11 = highwayScale;
+            postProj.m03 = offsetX;
+            postProj.m13 = offsetY;
+
+            return postProj;
+        }
+
+        public static Matrix4x4 GetModifiedProjectionMatrix(Matrix4x4 camProj, float offsetX, float highwayScale)
+        {
+            Matrix4x4 postProj = GetPostProjectionMatrix(offsetX, highwayScale);
+            return postProj * camProj;
         }
 
         /// <summary>

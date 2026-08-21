@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
@@ -52,6 +52,31 @@ namespace YARG.Gameplay.HUD
         public void AddTrackPlayer(TrackPlayer trackPlayer)
         {
             _highwayCameraRendering.AddTrackPlayer(trackPlayer);
+        }
+
+        public void ReplaceTrackPlayer(TrackPlayer oldPlayer, TrackPlayer newPlayer)
+        {
+            _highwayCameraRendering.ReplaceTrackPlayer(oldPlayer, newPlayer);
+        }
+
+        public void RemoveTrackPlayer(TrackPlayer trackPlayer)
+        {
+            _highwayCameraRendering.RemoveTrackPlayer(trackPlayer);
+        }
+
+        public void RemoveVocalTrack()
+        {
+            _vocalImage.gameObject.SetActive(false);
+            _highwayCameraRendering.RemoveVocalTrack(GameManager.VocalTrack);
+        }
+
+        public void RemoveTrackView(TrackView trackView)
+        {
+            if (trackView != null)
+            {
+                _trackViews.Remove(trackView);
+                Destroy(trackView.gameObject);
+            }
         }
 
         protected override void GameplayDestroy()
