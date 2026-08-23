@@ -251,6 +251,10 @@ namespace YARG.Gameplay
             if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || IsPractice || GlobalVariables.State.IsPartyPlay)
             {
                 _failMeter.SetActive(false);
+                if (GlobalVariables.State.IsPartyPlay)
+                {
+                    _failMeter.gameObject.SetActive(false);
+                }
             }
 
             // This is not an else because we still want to subscribe in case the user disables no fail during the song

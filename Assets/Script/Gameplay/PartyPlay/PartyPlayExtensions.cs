@@ -127,11 +127,19 @@ namespace YARG.Gameplay.PartyPlay
             var playersList = typeof(FailMeter).GetField("_players", flags)?.GetValue(failMeter) as List<EngineManager.EngineContainer>;
             playersList?.Clear();
 
+            bool hasPlayers = gm.Players != null && gm.Players.Count > 0;
+            if (GlobalVariables.State.IsPartyPlay && !hasPlayers)
+            {
+                failMeter.gameObject.SetActive(false);
+                return;
+            }
+
             failMeter.gameObject.SetActive(true);
             failMeter.enabled = true;
 
             // Re-initialize cleanly
             failMeter.Initialize(gm.EngineManager, gm);
+            failMeter.SetActive(true);
 
             // Invalidate cached happiness so meter fill and player needles immediately update on frame 1
             typeof(FailMeter).GetField("_previousBandHappiness", flags)?.SetValue(failMeter, -1f);
