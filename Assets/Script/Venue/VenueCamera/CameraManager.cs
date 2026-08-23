@@ -129,6 +129,13 @@ namespace YARG.Venue.VenueCamera
             var cameras = _venue.GetComponentsInChildren<Camera>(true);
             _cameras = cameras.ToList();
 
+            _nearCameras.Clear();
+            _farCameras.Clear();
+            _frontCameras.Clear();
+            _behindCameras.Clear();
+            _subjectToCameraMap.Clear();
+            _validLocations.Clear();
+            _cameraLocations.Clear();
 
             var layerMask = LayerMask.GetMask("Venue");
 
@@ -230,10 +237,11 @@ namespace YARG.Venue.VenueCamera
 
             SwitchCamera(CurrentCamera, _useCameraTimer);
 
+            GameManager.BeatEventHandler?.Audio?.Unsubscribe(BeatHandler);
             if (_useCameraTimer)
             {
                 // Subscribe to beat handler for camera cut timing
-                GameManager.BeatEventHandler?.Audio.Subscribe(BeatHandler, BeatEventType.StrongBeat);
+                GameManager.BeatEventHandler?.Audio?.Subscribe(BeatHandler, BeatEventType.StrongBeat);
             }
 
             GameManager.SetVenueCameraManager(this);

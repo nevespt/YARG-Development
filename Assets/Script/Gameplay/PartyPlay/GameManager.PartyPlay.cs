@@ -498,7 +498,10 @@ namespace YARG.Gameplay
                     return;
                 }
 
-                // 3. Instantaneous main-thread swap
+                // 3. Smooth cinematic crossfade and main-thread swap
+                PartyPlayManager.Instance?.HUD?.FadeOutToBlack(0.25f);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.25), ignoreTimeScale: true);
+
                 var oldRunner = _songRunner;
                 var oldMetronome = _metronomeScheduler;
                 var oldClap = _crowdClapScheduler;
@@ -713,6 +716,9 @@ namespace YARG.Gameplay
                 enabled = true;
                 IsSongStarted = true;
                 _songStarted?.Invoke();
+
+                // Smooth cinematic reveal of the new song and lightshow
+                PartyPlayManager.Instance?.HUD?.FadeInFromBlack(0.6f);
             }
             finally
             {

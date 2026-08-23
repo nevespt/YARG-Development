@@ -31,6 +31,9 @@ namespace YARG.Gameplay.PartyPlay
         private TextMeshProUGUI _dialogDifficultyText;
         private TextMeshProUGUI _dialogHelpText;
 
+        // Cinematic Transition Fader Overlay
+        private CanvasGroup _transitionFaderCanvasGroup;
+
         private bool _isDropInActive;
         public bool IsDropInActive => _isDropInActive;
 
@@ -53,6 +56,23 @@ namespace YARG.Gameplay.PartyPlay
             scaler.matchWidthOrHeight = 0.5f;
 
             canvasGo.AddComponent<GraphicRaycaster>();
+
+            // ==========================================
+            // 0. Cinematic Transition Fader Overlay
+            // ==========================================
+            var faderGo = new GameObject("TransitionFader");
+            faderGo.transform.SetParent(canvasGo.transform, false);
+            var faderRect = faderGo.AddComponent<RectTransform>();
+            faderRect.anchorMin = Vector2.zero;
+            faderRect.anchorMax = Vector2.one;
+            faderRect.sizeDelta = Vector2.zero;
+
+            var faderImg = faderGo.AddComponent<Image>();
+            faderImg.color = new Color(0.04f, 0.04f, 0.07f, 1f);
+
+            _transitionFaderCanvasGroup = faderGo.AddComponent<CanvasGroup>();
+            _transitionFaderCanvasGroup.alpha = 0f;
+            _transitionFaderCanvasGroup.blocksRaycasts = false;
 
             // ==========================================
             // 1. Idle Bottom-Center Emblem ("PARTY PLAY")
@@ -331,6 +351,31 @@ namespace YARG.Gameplay.PartyPlay
             {
                 _dropInDialog.SetActive(false);
             }
+        }
+
+        public void FadeOutToBlack(float duration = 0.35f, Action onComplete = null)
+        {
+            if (_transitionFaderCanvasGroup == null)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+
+            _transitionFaderCanvasGroup.DOKill();
+            _transitionFaderCanvasGroup.DOFade(1f, duration)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true)
+                .OnComplete(() => onComplete?.Invoke());
+        }
+
+        public void FadeInFromBlack(float duration = 0.65f)
+        {
+            if (_transitionFaderCanvasGroup == null) return;
+
+            _transitionFaderCanvasGroup.DOKill();
+            _transitionFaderCanvasGroup.DOFade(0f, duration)
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true);
         }
     }
 }
