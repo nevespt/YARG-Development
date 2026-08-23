@@ -143,3 +143,4 @@ Tools/**/[Bb]in/
 Tools/**/[Oo]bj/
 
 qodana.yaml
+Nightly/*

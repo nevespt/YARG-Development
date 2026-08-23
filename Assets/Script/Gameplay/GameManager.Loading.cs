@@ -248,7 +248,7 @@ namespace YARG.Gameplay
 
             _failMeter.Initialize(EngineManager, this);
 
-            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || IsPractice)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || IsPractice || GlobalVariables.State.IsPartyPlay)
             {
                 _failMeter.SetActive(false);
             }
@@ -417,6 +417,13 @@ namespace YARG.Gameplay
             try
             {
                 _players = new List<BasePlayer>();
+
+                // In Party Play, start in Idle/Jukebox mode with 0 players on track
+                // Players can drop in at any time!
+                if (GlobalVariables.State.IsPartyPlay)
+                {
+                    return;
+                }
 
                 bool vocalTrackInitialized = false;
 

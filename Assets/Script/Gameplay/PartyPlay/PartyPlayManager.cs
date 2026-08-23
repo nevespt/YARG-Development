@@ -116,9 +116,9 @@ namespace YARG.Gameplay.PartyPlay
                 }
             }
 
-            // Update join prompt visibility - only show if someone can actually join!
+            // Update HUD state (Idle Emblem & Bottom Navigation Bar vs Active Mode Top Banner)
             bool canJoin = CanAnyPlayerJoin;
-            _hud.SetJoinPromptVisible(!_isDropInActive && !_isSummaryActive && canJoin);
+            _hud.UpdateHUDState(_gameManager.Players.Count, canJoin, _isSummaryActive);
 
             // Fallback keyboard / gamepad detection for unassigned players (only if a profile is free)
             if (!_isDropInActive && !_isSummaryActive && canJoin)
@@ -149,6 +149,21 @@ namespace YARG.Gameplay.PartyPlay
                     _scoreSummary.SkipNow();
                 }
                 return;
+            }
+
+            // In 0-Player Idle / Jukebox Mode, handle Red (Main Menu) and Yellow (Skip Song)
+            if (_gameManager.Players.Count == 0 && !_isDropInActive)
+            {
+                if (action == MenuAction.Red)
+                {
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+                if (action is MenuAction.Yellow or MenuAction.Select)
+                {
+                    AdvanceToNextSong();
+                    return;
+                }
             }
 
             // If player is null, try to find an existing free profile
@@ -231,6 +246,31 @@ namespace YARG.Gameplay.PartyPlay
 
         private void CheckForFallbackJoinInput()
         {
+            // In 0-Player Idle Mode, handle Escape/Red (Exit) and Tab/Yellow (Skip Song)
+            if (_gameManager.Players.Count == 0 && !_isDropInActive)
+            {
+                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                {
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+                if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+                {
+                    GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+                    return;
+                }
+                if (Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
+                {
+                    AdvanceToNextSong();
+                    return;
+                }
+                if (Gamepad.current != null && (Gamepad.current.buttonNorth.wasPressedThisFrame || Gamepad.current.selectButton.wasPressedThisFrame))
+                {
+                    AdvanceToNextSong();
+                    return;
+                }
+            }
+
             bool joinPressed = false;
 
             if (Keyboard.current != null)
