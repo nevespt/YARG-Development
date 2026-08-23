@@ -422,6 +422,7 @@ namespace YARG.Gameplay
                 // Players can drop in at any time!
                 if (GlobalVariables.State.IsPartyPlay)
                 {
+                    _lyricBar?.UpdateBackgroundDisplay();
                     return;
                 }
 

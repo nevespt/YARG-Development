@@ -50,6 +50,16 @@ namespace YARG.Gameplay.HUD
             UpdateBackgroundDisplay();
         }
 
+        private void Start()
+        {
+            UpdateBackgroundDisplay();
+        }
+
+        protected override void OnSongStarted()
+        {
+            UpdateBackgroundDisplay();
+        }
+
         public void UpdateBackgroundDisplay()
         {
             var lyricSetting = SettingsManager.Settings.LyricDisplay.Value;
@@ -62,7 +72,7 @@ namespace YARG.Gameplay.HUD
 
             // In Party Play with 0 active players (idle/jukebox mode), automatically use Transparent (Translucent) background
             // so that the background stays unobtrusive and blends with the venue stage
-            if (GlobalVariables.State.IsPartyPlay && (GameManager == null || GameManager.Players.Count == 0))
+            if (GlobalVariables.State.IsPartyPlay && (GameManager == null || GameManager.Players == null || GameManager.Players.Count == 0))
             {
                 if (lyricSetting == LyricDisplayMode.Normal)
                 {
@@ -70,20 +80,13 @@ namespace YARG.Gameplay.HUD
                 }
             }
 
-            switch (lyricSetting)
+            if (_normalBackground != null)
             {
-                case LyricDisplayMode.Normal:
-                    _normalBackground.SetActive(true);
-                    _transparentBackground.SetActive(false);
-                    break;
-                case LyricDisplayMode.Transparent:
-                    _normalBackground.SetActive(false);
-                    _transparentBackground.SetActive(true);
-                    break;
-                case LyricDisplayMode.NoBackground:
-                    _normalBackground.SetActive(false);
-                    _transparentBackground.SetActive(false);
-                    break;
+                _normalBackground.SetActive(lyricSetting == LyricDisplayMode.Normal);
+            }
+            if (_transparentBackground != null)
+            {
+                _transparentBackground.SetActive(lyricSetting == LyricDisplayMode.Transparent);
             }
         }
 
