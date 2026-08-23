@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -47,12 +47,27 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
+            UpdateBackgroundDisplay();
+        }
+
+        public void UpdateBackgroundDisplay()
+        {
             var lyricSetting = SettingsManager.Settings.LyricDisplay.Value;
 
             if (!ShouldEnable)
             {
                 gameObject.SetActive(false);
                 return;
+            }
+
+            // In Party Play with 0 active players (idle/jukebox mode), automatically use Transparent (Translucent) background
+            // so that the background stays unobtrusive and blends with the venue stage
+            if (GlobalVariables.State.IsPartyPlay && (GameManager == null || GameManager.Players.Count == 0))
+            {
+                if (lyricSetting == LyricDisplayMode.Normal)
+                {
+                    lyricSetting = LyricDisplayMode.Transparent;
+                }
             }
 
             switch (lyricSetting)
@@ -81,6 +96,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnChartLoaded(SongChart chart)
         {
+            UpdateBackgroundDisplay();
             _songChart = chart;
             if (_songChart.Lyrics.Phrases.Count < 1)
             {

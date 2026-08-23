@@ -143,6 +143,8 @@ namespace YARG.Gameplay
                 {
                     scoreBox.gameObject.SetActive(_players.Count > 0);
                 }
+
+                _lyricBar?.UpdateBackgroundDisplay();
             }
 
             return newPlayer;
@@ -398,6 +400,8 @@ namespace YARG.Gameplay
             {
                 scoreBox.gameObject.SetActive(_players.Count > 0);
             }
+
+            _lyricBar?.UpdateBackgroundDisplay();
 
             return true;
         }
