@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Cysharp.Text;
 using DG.Tweening;
@@ -139,10 +139,16 @@ namespace YARG.Gameplay.HUD
             };
 
             // This is here because in the other init functions, GameManager.Players is not yet defined.
-            if (_bandComboObject.activeSelf)             {
+            if (_bandComboObject.activeSelf && GameManager.Players.Count > 0)
+            {
                 _bandComboUnits = GameManager.Players.Min(e => e.BaseStats.BandComboUnits);
             }
             _singlePlayer = GameManager.Players.Count == 1;
+
+            if (GlobalVariables.State.IsPartyPlay)
+            {
+                gameObject.SetActive(GameManager.Players.Count > 0);
+            }
         }
 
         private void Update()

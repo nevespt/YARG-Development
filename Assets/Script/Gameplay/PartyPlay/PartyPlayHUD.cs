@@ -83,7 +83,7 @@ namespace YARG.Gameplay.PartyPlay
             emblemRect.anchorMin = new Vector2(0.5f, 0f);
             emblemRect.anchorMax = new Vector2(0.5f, 0f);
             emblemRect.pivot = new Vector2(0.5f, 0f);
-            emblemRect.anchoredPosition = new Vector2(0f, 96f);
+            emblemRect.anchoredPosition = new Vector2(0f, 115f);
             emblemRect.sizeDelta = new Vector2(440f, 72f);
 
             // Emblem Outer Glow / Border
@@ -141,7 +141,7 @@ namespace YARG.Gameplay.PartyPlay
             barRect.anchorMin = new Vector2(0.5f, 0f);
             barRect.anchorMax = new Vector2(0.5f, 0f);
             barRect.pivot = new Vector2(0.5f, 0f);
-            barRect.anchoredPosition = new Vector2(0f, 36f);
+            barRect.anchoredPosition = new Vector2(0f, 54f);
             barRect.sizeDelta = new Vector2(760f, 44f);
 
             var barLayout = _bottomBarContainer.AddComponent<HorizontalLayoutGroup>();

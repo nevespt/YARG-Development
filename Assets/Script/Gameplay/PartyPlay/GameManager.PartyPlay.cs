@@ -137,6 +137,12 @@ namespace YARG.Gameplay
                 EngineManager.InitializeHappiness(true);
                 _failMeter.RefreshPlayers();
                 PartyPlayHUDController.ResetUnisonDisplay(_unisonDisplay, Chart);
+
+                var scoreBox = UnityEngine.Object.FindFirstObjectByType<ScoreBox>(FindObjectsInactive.Include);
+                if (scoreBox != null)
+                {
+                    scoreBox.gameObject.SetActive(_players.Count > 0);
+                }
             }
 
             return newPlayer;
@@ -386,6 +392,12 @@ namespace YARG.Gameplay
             }
             _failMeter.RefreshPlayers();
             PartyPlayHUDController.ResetUnisonDisplay(_unisonDisplay, Chart);
+
+            var scoreBox = UnityEngine.Object.FindFirstObjectByType<ScoreBox>(FindObjectsInactive.Include);
+            if (scoreBox != null)
+            {
+                scoreBox.gameObject.SetActive(_players.Count > 0);
+            }
 
             return true;
         }

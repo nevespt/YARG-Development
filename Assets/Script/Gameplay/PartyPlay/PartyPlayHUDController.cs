@@ -272,6 +272,11 @@ namespace YARG.Gameplay.PartyPlay
             // Trigger OnSongStarted to recalculate song length string & time format
             var miOnSongStarted = typeof(ScoreBox).GetMethod("OnSongStarted", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             miOnSongStarted?.Invoke(scoreBox, null);
+
+            if (GlobalVariables.State.IsPartyPlay)
+            {
+                scoreBox.gameObject.SetActive(gameManager != null && gameManager.Players.Count > 0);
+            }
         }
 
         public static void ResetLyrics(LyricBar lyricBar, SongChart chart)
