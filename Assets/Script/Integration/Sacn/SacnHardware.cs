@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using Haukcode.sACN;
@@ -38,10 +38,11 @@ namespace YARG.Integration.Sacn
             {
                 if (_sendClient != null) return;
 
-                string configuredAddress = SettingsManager.Settings.DMXLocalIP.Value;
+                string configuredAddress = SettingsManager.Settings?.DMXLocalIP?.Value;
+                var bindAddr = SACNCommon.GetFirstBindAddress();
                 IPAddress ipAddress = string.IsNullOrEmpty(configuredAddress)
-                    ? SACNCommon.GetFirstBindAddress().IPAddress
-                    : IPAddress.Parse(configuredAddress);
+                    ? bindAddr.IPAddress
+                    : (IPAddress.TryParse(configuredAddress, out var parsed) ? parsed : bindAddr.IPAddress);
 
                 if (ipAddress == null)
                 {
