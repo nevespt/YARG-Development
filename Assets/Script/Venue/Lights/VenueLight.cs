@@ -79,15 +79,18 @@ namespace YARG.Venue
 
             var lightState = _lightManager.GetLightStateFor(Location);
 
-            _light.intensity = _defaultIntensity * lightState.Intensity;
+            float targetIntensity = _defaultIntensity * lightState.Intensity;
+            Color targetColor = lightState.Color ?? _defaultColor;
 
-            if (lightState.Color == null)
+            if (GlobalVariables.State.IsPartyPlay)
             {
-                _light.color = _defaultColor;
+                _light.intensity = Mathf.MoveTowards(_light.intensity, targetIntensity, Time.deltaTime * (_defaultIntensity * 8f));
+                _light.color = Color.Lerp(_light.color, targetColor, Time.deltaTime * 12f);
             }
             else
             {
-                _light.color = lightState.Color.Value;
+                _light.intensity = targetIntensity;
+                _light.color = targetColor;
             }
         }
 

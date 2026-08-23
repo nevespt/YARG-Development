@@ -221,12 +221,6 @@ namespace YARG.Gameplay.PartyPlay
             {
                 MasterLightingController.CurrentLightingCue = chart.VenueTrack.Lighting[0];
             }
-
-            if (gameManager != null && gameManager.VenueCameraManager != null)
-            {
-                gameManager.VenueCameraManager.ResetAllEffectsToDefault();
-                gameManager.VenueCameraManager.ResetTime(visualTime);
-            }
         }
 
         public static void ResetScoreBox(ScoreBox scoreBox, double songLength, GameManager gameManager)
