@@ -120,8 +120,11 @@ namespace YARG.Gameplay.PartyPlay
             bool canJoin = CanAnyPlayerJoin;
             _hud.UpdateHUDState(_gameManager.Players.Count, canJoin, _isSummaryActive);
 
-            // Fallback keyboard / gamepad detection for unassigned players (only if a profile is free)
-            if (!_isDropInActive && !_isSummaryActive && canJoin)
+            if (_isDropInActive)
+            {
+                HandleDialogKeyboardFallback();
+            }
+            else if (!_isSummaryActive && canJoin)
             {
                 CheckForFallbackJoinInput();
             }
@@ -184,7 +187,11 @@ namespace YARG.Gameplay.PartyPlay
                 // Player is not currently on track
                 if (!_isDropInActive)
                 {
-                    StartDropInForPlayer(player);
+                    // ONLY open Drop-In dialog when Start, Green, or Select (Enter) is pressed!
+                    if (action is MenuAction.Start or MenuAction.Green or MenuAction.Select)
+                    {
+                        StartDropInForPlayer(player);
+                    }
                 }
                 else if (_currentDropInPlayer == player)
                 {
@@ -275,8 +282,8 @@ namespace YARG.Gameplay.PartyPlay
 
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.spaceKey.wasPressedThisFrame ||
-                    Keyboard.current.enterKey.wasPressedThisFrame ||
+                // Only Enter or NumpadEnter for keyboard/bots
+                if (Keyboard.current.enterKey.wasPressedThisFrame ||
                     Keyboard.current.numpadEnterKey.wasPressedThisFrame)
                 {
                     joinPressed = true;
@@ -285,6 +292,7 @@ namespace YARG.Gameplay.PartyPlay
 
             if (Gamepad.current != null)
             {
+                // Only Start or Green (A/Cross/South)
                 if (Gamepad.current.startButton.wasPressedThisFrame ||
                     Gamepad.current.buttonSouth.wasPressedThisFrame)
                 {
@@ -298,6 +306,65 @@ namespace YARG.Gameplay.PartyPlay
                 if (player != null)
                 {
                     StartDropInForPlayer(player);
+                }
+            }
+        }
+
+        private void HandleDialogKeyboardFallback()
+        {
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.upArrowKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Up);
+                }
+                else if (Keyboard.current.downArrowKey.wasPressedThisFrame || Keyboard.current.sKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Down);
+                }
+                else if (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.aKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Left);
+                }
+                else if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Right);
+                }
+                else if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Green);
+                }
+                else if (Keyboard.current.escapeKey.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Red);
+                }
+            }
+
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.dpad.up.wasPressedThisFrame || Gamepad.current.leftStick.up.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Up);
+                }
+                else if (Gamepad.current.dpad.down.wasPressedThisFrame || Gamepad.current.leftStick.down.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Down);
+                }
+                else if (Gamepad.current.dpad.left.wasPressedThisFrame || Gamepad.current.leftStick.left.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Left);
+                }
+                else if (Gamepad.current.dpad.right.wasPressedThisFrame || Gamepad.current.leftStick.right.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Right);
+                }
+                else if (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.startButton.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Green);
+                }
+                else if (Gamepad.current.buttonEast.wasPressedThisFrame || Gamepad.current.selectButton.wasPressedThisFrame)
+                {
+                    HandleMenuAction(MenuAction.Red);
                 }
             }
         }
