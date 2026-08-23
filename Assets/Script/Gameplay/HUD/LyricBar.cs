@@ -80,13 +80,25 @@ namespace YARG.Gameplay.HUD
                 }
             }
 
-            if (_normalBackground != null)
+            switch (lyricSetting)
             {
-                _normalBackground.SetActive(lyricSetting == LyricDisplayMode.Normal);
-            }
-            if (_transparentBackground != null)
-            {
-                _transparentBackground.SetActive(lyricSetting == LyricDisplayMode.Transparent);
+                case LyricDisplayMode.Normal:
+                    _normalBackground?.SetActive(true);
+                    _transparentBackground?.SetActive(false);
+                    break;
+                case LyricDisplayMode.Transparent:
+                    _normalBackground?.SetActive(false);
+                    _transparentBackground?.SetActive(true);
+                    break;
+                case LyricDisplayMode.NoBackground:
+                    _normalBackground?.SetActive(false);
+                    _transparentBackground?.SetActive(false);
+                    break;
+                case LyricDisplayMode.Disabled:
+                    _normalBackground?.SetActive(false);
+                    _transparentBackground?.SetActive(false);
+                    gameObject.SetActive(false);
+                    break;
             }
         }
 
