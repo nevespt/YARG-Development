@@ -33,9 +33,13 @@ namespace YARG.Gameplay
 {
     public partial class GameManager
     {
+        private readonly HashSet<YargPlayer> _partyPlayActiveRoster = new();
+
         public BasePlayer SpawnPartyPlayer(YargPlayer player, bool refreshHud = true, bool isTransition = false)
         {
             if (player == null || Chart == null) return null;
+
+            _partyPlayActiveRoster.Add(player);
 
             player.IsScoreValid = true;
             if (!player.IsReplay)
@@ -141,6 +145,15 @@ namespace YARG.Gameplay
         public BasePlayer ReplacePartyPlayer(BasePlayer oldPlayer, YargPlayer profilePlayer)
         {
             if (oldPlayer == null || !_players.Contains(oldPlayer)) return null;
+
+            if (oldPlayer.Player != null)
+            {
+                _partyPlayActiveRoster.Remove(oldPlayer.Player);
+            }
+            if (profilePlayer != null)
+            {
+                _partyPlayActiveRoster.Add(profilePlayer);
+            }
 
             int playerIndex = _players.IndexOf(oldPlayer);
             int highwayIndex = (oldPlayer is TrackPlayer tp) ? tp.HighwayIndex : 0;
@@ -273,6 +286,11 @@ namespace YARG.Gameplay
         {
             if (player == null || !_players.Contains(player)) return false;
 
+            if (player.Player != null)
+            {
+                _partyPlayActiveRoster.Remove(player.Player);
+            }
+
             _players.Remove(player);
 
             var eng = player.GetEngineContainer();
@@ -399,21 +417,7 @@ namespace YARG.Gameplay
                 YargLogger.LogFormatInfo("Seamless Party Play background transition to song {0} - {1}", nextSong.Name, nextSong.Artist);
 
                 // 1. Snapshot the joined party player roster before background loading
-                var activeRoster = new List<YargPlayer>();
-                foreach (var p in PlayerContainer.Players)
-                {
-                    if (p != null && !activeRoster.Contains(p))
-                    {
-                        activeRoster.Add(p);
-                    }
-                }
-                foreach (var p in _players)
-                {
-                    if (p != null && p.Player != null && !activeRoster.Contains(p.Player))
-                    {
-                        activeRoster.Add(p.Player);
-                    }
-                }
+                var activeRoster = _partyPlayActiveRoster.ToList();
 
                 // 2. Load chart, venue events, beatlines, background and audio on a worker thread
                 // Current gameplay and venue camera continue running fluidly with zero freeze!
